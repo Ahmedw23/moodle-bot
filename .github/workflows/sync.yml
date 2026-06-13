@@ -30,10 +30,10 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup PHP 8.2 and extensions
+      - name: Setup PHP 8.3 and extensions
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
+          php-version: "8.3"
           tools: composer:v2
           coverage: none
           extensions: mbstring,xml,dom,pdo_pgsql
@@ -60,7 +60,7 @@ jobs:
         run: |
           echo "DB_CONNECTION=pgsql" >> $GITHUB_ENV
           echo "DB_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-          
+
       - name: Run Moodle sync
         run: php artisan app:moodle-sync --verbose
         timeout-minutes: 30
