@@ -53,6 +53,9 @@ jobs:
           echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> $GITHUB_ENV
           echo "MOODLE_USERNAME=${{ secrets.MOODLE_USERNAME }}" >> $GITHUB_ENV
           echo "MOODLE_PASSWORD=${{ secrets.MOODLE_PASSWORD }}" >> $GITHUB_ENV
+          echo "CACHE_DRIVER=array" >> $GITHUB_ENV
+          echo "SESSION_DRIVER=file" >> $GITHUB_ENV
+          echo "QUEUE_CONNECTION=sync" >> $GITHUB_ENV
 
       - name: Cache Composer dependencies
         uses: actions/cache@v4
