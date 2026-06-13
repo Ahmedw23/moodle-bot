@@ -1,0 +1,66 @@
+name: Moodle Bot - Daily Sync
+
+on:
+  schedule:
+    - cron: "0 8 * * *" # runs daily at 08:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: moodle-sync
+  cancel-in-progress: true
+
+jobs:
+  moodle-sync:
+    name: Run Moodle sync
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      MOODLE_USERNAME: ${{ secrets.MOODLE_USERNAME }}
+      MOODLE_PASSWORD: ${{ secrets.MOODLE_PASSWORD }}
+      APP_ENV: production
+      APP_DEBUG: "false"
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup PHP 8.2 and extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          tools: composer:v2
+          coverage: none
+          extensions: mbstring,xml,dom,pdo_pgsql
+
+      - name: Validate PHP and extensions
+        run: php -v && php -m
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --no-interaction --prefer-dist --no-suggest
+
+      - name: Clear and warm caches
+        run: |
+          php artisan config:clear
+          php artisan cache:clear
+      - name: Set environment
+        run: |
+          echo "DB_CONNECTION=pgsql" >> $GITHUB_ENV
+          echo "DB_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          
+      - name: Run Moodle sync
+        run: php artisan app:moodle-sync --verbose
+        timeout-minutes: 30
