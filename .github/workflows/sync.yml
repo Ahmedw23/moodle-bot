@@ -57,9 +57,13 @@ jobs:
         run: composer install --no-progress --no-interaction --prefer-dist --no-suggest
 
       - name: Clear and warm caches
+        env:
+          DB_CONNECTION: pgsql
+          DB_URL: ${{ secrets.DATABASE_URL }}
+          CACHE_STORE: array
         run: |
           php artisan config:clear
-          php artisan cache:clear
+          php artisan cache:clear 
       - name: Set environment variables
         run: |
           echo "DB_CONNECTION=pgsql" >> $GITHUB_ENV
